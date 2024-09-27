@@ -1,57 +1,70 @@
 import pandas as pd
 
 def calculate_demographic_data(print_data=True):
-    
-    df = pd.read_csv('adult.data.csv')  
-    print(df.head())  # Exibe as primeiras linhas do DataFrame
+    # Carrega os dados do arquivo CSV
+    dados = pd.read_csv('adult.data.csv')
 
-    race_count = df['race'].value_counts()  # Conta as ocorrências de cada raça
-
-    man = df[df['sex'] == 'Male']  
-    average_age_men = round(man['age'].mean(), 1)  # Calcula a idade média dos homens
-
-    percentage_bachelors = round((df['education'] == 'Bachelors').mean() * 100, 1)  # Percentual de pessoas com bacharelado
-
-    higher_education = df[df['education'].isin(['Bachelors', 'Masters', 'Doctorate'])]  
-    lower_education = df[~df['education'].isin(['Bachelors', 'Masters', 'Doctorate'])]  
-
-    higher_education_rich = round((higher_education['salary'] == '>50K').sum() * 100 / len(higher_education), 1)  
-    lower_education_rich = round((lower_education['salary'] == '>50K').sum() * 100 / len(lower_education), 1)  
-
-    min_work_hours = df['hours-per-week'].min()  # Menor número de horas trabalhadas por semana
-
-    num_min_workers = df[df['hours-per-week'] == min_work_hours]  
-    rich_percentage = round((num_min_workers['salary'] == '>50K').sum() * 100 / len(num_min_workers), 1)  # Percentual que ganha >50K
-
-    highest_earning_country_values = df.groupby('native-country')['salary'].apply(lambda x: (x == '>50K').mean() * 100)  
-    highest_earning_country = highest_earning_country_values.idxmax()  
-    highest_earning_country_percentage = round(highest_earning_country_values.max(), 1)  
-
-    top_IN_occupation = df[(df['native-country'] == 'India') & (df['salary'] == '>50K')].groupby('occupation').size().idxmax()  
-    # Ocupação mais comum na Índia para quem ganha >50K
-
+    # Exibe as primeiras linhas se solicitado
     if print_data:
-        print("Number of each race:\n", race_count) 
-        print("Average age of men:", average_age_men)
-        print(f"Percentage with Bachelors degrees: {percentage_bachelors}%")
-        print(f"Percentage with higher education that earn >50K: {higher_education_rich}%")
-        print(f"Percentage without higher education that earn >50K: {lower_education_rich}%")
-        print(f"Min work time: {min_work_hours} hours/week")
-        print(f"Percentage of rich among those who work fewest hours: {rich_percentage}%")
-        print("Country with highest percentage of rich:", highest_earning_country)
-        print(f"Highest percentage of rich people in country: {highest_earning_country_percentage}%")
-        print("Top occupations in India:", top_IN_occupation)
+        print(dados.head())
 
+    # Contagem de cada raça no dataset
+    contagem_raca = dados['race'].value_counts()
+    
+    # Calcula a idade média dos homens
+    homens = dados[dados['sex'] == 'Male']
+    media_idade_homens = round(homens['age'].mean(), 1)
+    
+    # Percentual de pessoas com grau de bacharelado
+    percentual_bacharelado = round((dados['education'] == 'Bachelors').mean() * 100, 1)
+
+    # Separa pessoas com e sem educação superior (Bacharelado, Mestrado, Doutorado)
+    educacao_superior = dados[dados['education'].isin(['Bachelors', 'Masters', 'Doctorate'])]
+    educacao_inferior = dados[~dados['education'].isin(['Bachelors', 'Masters', 'Doctorate'])]
+
+    # Percentual de pessoas com educação superior que ganham >50K
+    ricos_educacao_superior = round((educacao_superior['salary'] == '>50K').sum() * 100 / len(educacao_superior), 1)
+    # Percentual de pessoas sem educação superior que ganham >50K
+    ricos_educacao_inferior = round((educacao_inferior['salary'] == '>50K').sum() * 100 / len(educacao_inferior), 1)
+
+    # Mínimo de horas trabalhadas por semana
+    horas_minimas_trabalho = dados['hours-per-week'].min()
+
+    # Percentual de pessoas que trabalham o mínimo de horas por semana e ganham >50K
+    trabalhadores_horas_minimas = dados[dados['hours-per-week'] == horas_minimas_trabalho]
+    percentual_ricos_horas_minimas = round((trabalhadores_horas_minimas['salary'] == '>50K').sum() * 100 / len(trabalhadores_horas_minimas), 1)
+
+    # País com maior percentual de pessoas que ganham >50K
+    pais_maior_percentual_rico = dados.groupby(by=['native-country'])['salary'].apply(lambda x: (x == '>50K').mean() * 100)
+    pais_mais_rico = pais_maior_percentual_rico.idxmax()
+    percentual_pais_mais_rico = round(pais_maior_percentual_rico.max(), 1)
+
+    # Ocupação mais comum entre os ricos (>50K) na Índia
+    ocupacao_top_india = dados[(dados['native-country'] == 'India') & (dados['salary'] == '>50K')].groupby('occupation').size().idxmax()
+
+    # Se solicitado, imprime os dados
+    if print_data:
+        print("Number of each race:\n", contagem_raca) 
+        print("Average age of men:", media_idade_homens)
+        print(f"Percentage with Bachelors degrees: {percentual_bacharelado}%")
+        print(f"Percentage with higher education that earn >50K: {ricos_educacao_superior}%")
+        print(f"Percentage without higher education that earn >50K: {ricos_educacao_inferior}%")
+        print(f"Min work time: {horas_minimas_trabalho} hours/week")
+        print(f"Percentage of rich among those who work fewest hours: {percentual_ricos_horas_minimas}%")
+        print("Country with highest percentage of rich:", pais_mais_rico)
+        print(f"Highest percentage of rich people in country: {percentual_pais_mais_rico}%")
+        print("Top occupations in India:", ocupacao_top_india)
+
+    # Retorna os dados calculados
     return {
-        'race_count': race_count,
-        'average_age_men': average_age_men,
-        'percentage_bachelors': percentage_bachelors,
-        'higher_education_rich': higher_education_rich,
-        'lower_education_rich': lower_education_rich,
-        'min_work_hours': min_work_hours,
-        'rich_percentage': rich_percentage,
-        'highest_earning_country': highest_earning_country,
-        'highest_earning_country_percentage':
-        highest_earning_country_percentage,
-        'top_IN_occupation': top_IN_occupation
+        'race_count': contagem_raca,
+        'average_age_men': media_idade_homens,
+        'percentage_bachelors': percentual_bacharelado,
+        'higher_education_rich': ricos_educacao_superior,
+        'lower_education_rich': ricos_educacao_inferior,
+        'min_work_hours': horas_minimas_trabalho,
+        'rich_percentage': percentual_ricos_horas_minimas,
+        'highest_earning_country': pais_mais_rico,
+        'highest_earning_country_percentage': percentual_pais_mais_rico,
+        'top_IN_occupation': ocupacao_top_india
     }
